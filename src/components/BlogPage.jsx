@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import UserService from '../components/service/UserService'; // Import your UserService
+import UserService from '../components/service/UserService';
 import { Link } from 'react-router-dom';
-import { FaHeart, FaRegHeart, FaComment, FaUser, FaChevronDown, FaChevronUp, FaPaperPlane } from 'react-icons/fa'; // Added paper plane icon
+import { FaHeart, FaRegHeart, FaComment, FaUser, FaChevronDown, FaChevronUp, FaPaperPlane } from 'react-icons/fa';
 import axios from 'axios';
 
 const BlogPage = () => {
@@ -17,10 +17,26 @@ const BlogPage = () => {
   const [commentText, setCommentText] = useState({});
   const [postingComment, setPostingComment] = useState({});
   const [commentErrors, setCommentErrors] = useState({});
+  const [likeInProgress, setLikeInProgress] = useState({});
 
   useEffect(() => {
     fetchBlogs();
   }, [currentPage]);
+
+  useEffect(() => {
+    // Initialize liked posts status
+    const initLikedPostsStatus = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        // You might want to create an API endpoint to get all liked posts for the current user
+        // For now, we'll just use local state
+      } catch (err) {
+        console.error("Error fetching liked posts status:", err);
+      }
+    };
+
+    initLikedPostsStatus();
+  }, []);
 
   const fetchBlogs = async () => {
     try {
@@ -49,7 +65,6 @@ const BlogPage = () => {
       
       setComments(prev => ({ ...prev, [postId]: response.data }));
       setLoadingComments(prev => ({ ...prev, [postId]: false }));
-      console.log(comments)
     } catch (err) {
       console.error(`Error fetching comments for post ${postId}:`, err);
       setLoadingComments(prev => ({ ...prev, [postId]: false }));
@@ -112,11 +127,37 @@ const BlogPage = () => {
     return content.substring(0, maxLength) + '...';
   };
 
-  const handleLikeToggle = (postId) => {
-    setLikedPosts(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
+  const handleLikeToggle = async (postId) => {
+    // Prevent multiple clicks
+    if (likeInProgress[postId]) return;
+    
+    try {
+      setLikeInProgress(prev => ({ ...prev, [postId]: true }));
+      
+      const token = localStorage.getItem('token');
+      // Call the API to like/unlike the post
+      await axios.post(
+        `http://localhost:1010/adminuser/api/likes/like/${postId}`,
+        {}, // Empty body or you can add any required data
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Update the local state
+      setLikedPosts(prev => ({
+        ...prev,
+        [postId]: !prev[postId]
+      }));
+      
+      // Update like count in blogs if you have a likes count
+      // This depends on your API response. If it returns updated post data, you 
+      // might want to update the blog post in the state
+      
+      setLikeInProgress(prev => ({ ...prev, [postId]: false }));
+    } catch (err) {
+      console.error(`Error toggling like for post ${postId}:`, err);
+      setLikeInProgress(prev => ({ ...prev, [postId]: false }));
+      // Optionally show an error message
+    }
   };
 
   const handleCommentChange = (postId, text) => {
@@ -204,8 +245,11 @@ const BlogPage = () => {
                     <button 
                       className="btn btn-sm btn-link text-decoration-none text-muted"
                       onClick={() => handleLikeToggle(blog.postId)}
+                      disabled={likeInProgress[blog.postId]}
                     >
-                      {likedPosts[blog.postId] ? (
+                      {likeInProgress[blog.postId] ? (
+                        <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                      ) : likedPosts[blog.postId] ? (
                         <><FaHeart className="text-danger" /> <span className="ms-1">Liked</span></>
                       ) : (
                         <><FaRegHeart /> <span className="ms-1">Like</span></>

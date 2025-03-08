@@ -66,17 +66,7 @@ const CategoryForm = ({ token }) => {
         setCategory({ categoryTitle: cat.categoryTitle, categoryDescription: cat.categoryDescription });
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this category?")) {
-            UserService.deleteCategory(id, authToken)
-                .then(() => {
-                    setMessage("Category deleted successfully!");
-                    fetchCategories();
-                    navigate("/category");
-                })
-                .catch(() => setMessage("Failed to delete category."));
-        }
-    };
+    
 
     return (
         <div className="container mt-4">
@@ -116,7 +106,7 @@ const CategoryForm = ({ token }) => {
                         <th>ID</th>
                         <th>Title</th>
                         <th>Description</th>
-                        <th>Actions</th>
+                       
                     </tr>
                 </thead>
                 <tbody>
@@ -125,10 +115,7 @@ const CategoryForm = ({ token }) => {
                             <td>{cat.id}</td>
                             <td>{cat.categoryTitle}</td>
                             <td>{cat.categoryDescription}</td>
-                            <td>
-                                <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(cat)}>Edit</button>
-                                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(cat.id)}>Delete</button>
-                            </td>
+                            
                         </tr>
                     ))}
                 </tbody>
