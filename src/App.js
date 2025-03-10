@@ -12,8 +12,8 @@ import ProfilePage from './components/userspage/ProfilePage';
 import CategoryForm from './components/CategoryForm';
 import BlogForm from './components/BlogForm';
 import BlogPage from './components/BlogPage';
-
-
+import SingleBlog from './components/SingleBlog';
+import UserBlog from './components/UserBlog';
 
 
 function App() {
@@ -31,8 +31,11 @@ function App() {
             <Route path="/categories" element={<CategoryForm />} />
             <Route path="/blog" element={<BlogForm />} />
             <Route path="/allblog" element={<BlogPage />} />
-
-
+            <Route path="/blog/:id/:email" element={<SingleBlog />} />
+    <Route 
+          path="/user/:userId/posts" 
+          element={<UserBlog /> } 
+        />
 
             {/* Check if user is authenticated and admin before rendering admin-only routes */}
             {UserService.adminOnly() && (

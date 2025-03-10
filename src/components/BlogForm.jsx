@@ -83,10 +83,10 @@ const BlogForm = () => {
       blogFormData.append('title', formData.title);
       blogFormData.append('content', formData.content);
       blogFormData.append('addedDate', formData.addedDate);
-      blogFormData.append('category', JSON.stringify({ categoryId: Number(formData.category) }));
+      // blogFormData.append('category', JSON.stringify({ categoryId: Number(formData.category) }));
       if (formData.image) {
-        blogFormData.append('image', formData.image);
-      }
+        blogFormData.append('image', formData.image);  // Corrected
+    }
       
       console.log(blogFormData, "dsfsdf");
       
@@ -95,10 +95,10 @@ const BlogForm = () => {
         title: formData.title,
         content: formData.content,
         addedDate: formData.addedDate,
-        category: { categoryId: Number(formData.category) },
+        // category: { categoryId: Number(formData.category) },
         image: formData.image
       }, token);
-      
+      console.log(response, "response");
       if (response && (response.status === 201 || response.status === 200)) {
         setSuccess("Blog post created successfully!");
         // Reset form
@@ -107,7 +107,7 @@ const BlogForm = () => {
           content: '',
           addedDate: new Date().toISOString().split('T')[0],
           category: '',
-          image: null
+          image_name: null
         });
         // Reset file input
         document.getElementById('image-upload').value = '';
@@ -132,8 +132,8 @@ const BlogForm = () => {
         {success && <div className="alert alert-success">{success}</div>}
         {error && <div className="alert alert-danger">{error}</div>}
         
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
+        <form onSubmit={handleSubmit} encType="multipart/form-data">
+        <div className="mb-3">
             <label htmlFor="title" className="form-label">Title</label>
             <input
               type="text"
@@ -147,7 +147,7 @@ const BlogForm = () => {
             />
           </div>
           
-          <div className="mb-3">
+          {/* <div className="mb-3">
             <label htmlFor="category" className="form-label">Category</label>
             <select
               id="category"
@@ -170,7 +170,7 @@ const BlogForm = () => {
             {fetchingCategories && <div className="spinner-border spinner-border-sm text-primary" role="status">
               <span className="visually-hidden">Loading...</span>
             </div>}
-          </div>
+          </div> */}
           
           <div className="mb-3">
             <label htmlFor="addedDate" className="form-label">Date</label>

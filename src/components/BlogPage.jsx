@@ -19,9 +19,7 @@ const BlogPage = () => {
   const [commentErrors, setCommentErrors] = useState({});
   const [likeInProgress, setLikeInProgress] = useState({});
 
-  useEffect(() => {
-    fetchBlogs();
-  }, [currentPage]);
+  
 
   useEffect(() => {
     // Initialize liked posts status
@@ -38,14 +36,16 @@ const BlogPage = () => {
     initLikedPostsStatus();
   }, []);
 
-  const fetchBlogs = async () => {
+  const fetchBlogs = async (page = 0) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await UserService.getAllBlog(token);
       
       setBlogs(response.content);
+      console.log(response.content);
       setTotalPages(response.totalPages);
+      setCurrentPage(page);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching blogs:", err);
@@ -53,7 +53,9 @@ const BlogPage = () => {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    fetchBlogs();
+  }, [currentPage]);
   const fetchComments = async (postId) => {
     try {
       setLoadingComments(prev => ({ ...prev, [postId]: true }));
@@ -119,6 +121,8 @@ const BlogPage = () => {
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < totalPages) {
       setCurrentPage(newPage);
+      // Scroll to top when page changes
+      window.scrollTo(0, 0);
     }
   };
 
@@ -268,7 +272,7 @@ const BlogPage = () => {
                     </button>
                     
                     <Link 
-                      to={`/blog/${blog.postId}`}
+                      to={`/blog/${blog.postId}/${blog.user.email}`}
                       className="btn btn-sm btn-link text-decoration-none text-primary"
                     >
                       Read more
@@ -347,44 +351,109 @@ const BlogPage = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <nav aria-label="Blog pagination" className="mt-4">
-          <ul className="pagination justify-content-center">
-            <li className={`page-item ${currentPage === 0 ? 'disabled' : ''}`}>
-              <button 
-                className="page-link" 
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 0}
-              >
-                Previous
+  <nav aria-label="Blog pagination" className="mt-4">
+    <ul className="pagination justify-content-center">
+      {/* First Page Button */}
+      <li className={`page-item ${currentPage === 0 ? 'disabled' : ''}`}>
+        <button 
+          className="page-link" 
+          onClick={() => handlePageChange(0)}
+          disabled={currentPage === 0}
+          aria-label="First page"
+        >
+          &laquo;
+        </button>
+      </li>
+      
+      {/* Previous Button */}
+      <li className={`page-item ${currentPage === 0 ? 'disabled' : ''}`}>
+        <button 
+          className="page-link" 
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 0}
+          aria-label="Previous page"
+        >
+          &lsaquo;
+        </button>
+      </li>
+      
+      {/* Dynamic Page Numbers */}
+      {(() => {
+        let pages = [];
+        const maxVisiblePages = 5; // Show max 5 page numbers
+        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+        
+        // Adjust start page if we're near the end
+        if (endPage - startPage + 1 < maxVisiblePages) {
+          startPage = Math.max(0, endPage - maxVisiblePages + 1);
+        }
+        
+        // Add ellipsis at start if needed
+        if (startPage > 0) {
+          pages.push(
+            <li key="start-ellipsis" className="page-item disabled">
+              <span className="page-link">...</span>
+            </li>
+          );
+        }
+        
+        // Add page numbers
+        for (let i = startPage; i <= endPage; i++) {
+          pages.push(
+            <li key={i} className={`page-item ${currentPage === i ? 'active' : ''}`}>
+              <button className="page-link" onClick={() => handlePageChange(i)}>
+                {i + 1}
               </button>
             </li>
-            
-            {[...Array(totalPages).keys()].map((page) => (
-              <li 
-                key={page} 
-                className={`page-item ${currentPage === page ? 'active' : ''}`}
-              >
-                <button 
-                  className="page-link" 
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page + 1}
-                </button>
-              </li>
-            ))}
-            
-            <li className={`page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}`}>
-              <button 
-                className="page-link" 
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages - 1}
-              >
-                Next
-              </button>
+          );
+        }
+        
+        // Add ellipsis at end if needed
+        if (endPage < totalPages - 1) {
+          pages.push(
+            <li key="end-ellipsis" className="page-item disabled">
+              <span className="page-link">...</span>
             </li>
-          </ul>
-        </nav>
-      )}
+          );
+        }
+        
+        return pages;
+      })()}
+      
+      {/* Next Button */}
+      <li className={`page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}`}>
+        <button 
+          className="page-link" 
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages - 1}
+          aria-label="Next page"
+        >
+          &rsaquo;
+        </button>
+      </li>
+      
+      {/* Last Page Button */}
+      <li className={`page-item ${currentPage === totalPages - 1 ? 'disabled' : ''}`}>
+        <button 
+          className="page-link" 
+          onClick={() => handlePageChange(totalPages - 1)}
+          disabled={currentPage === totalPages - 1}
+          aria-label="Last page"
+        >
+          &raquo;
+        </button>
+      </li>
+    </ul>
+    
+    {/* Page info */}
+    <div className="text-center mt-2">
+      <small className="text-muted">
+        Page {currentPage + 1} of {totalPages}
+      </small>
+    </div>
+  </nav>
+)}
     </div>
   );
 };

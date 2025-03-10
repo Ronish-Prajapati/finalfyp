@@ -145,7 +145,9 @@ class UserService{
                     blogFormData, // Send FormData directly
                     {
                         headers: {
+                            
                             Authorization: `Bearer ${token}`,
+                            
                             // Don't set Content-Type when sending FormData - axios will set it correctly with boundary
                         },
                     }
